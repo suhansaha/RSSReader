@@ -1,8 +1,12 @@
 package in.suhan.rssreader;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Xml;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -16,18 +20,22 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by ssaha8 on 23/02/2015.
  */
 public class Feed {
-    private String url;
-    private Context context;
     private static final String ns = null;
     public FeedAdapter adapter;
+    private String url;
+    private Context context;
 
     public Feed(Context context, String url, FeedAdapter adapter) {
         this.url = url;
@@ -79,27 +87,13 @@ public class Feed {
             String name = parser.getName();
             // Starts by looking for the entry tag
             if (name.equals("item")) {
-                adapter.add(readEntry(parser));
+                readEntry(parser);
             } else if(name.equals("channel")){
                 continue;
             }
             else {
                 skip(parser);
             }
-        }
-    }
-
-    public static class Entry {
-        public final String title;
-        public final String link;
-        public final String summary;
-        public final String image;
-
-        private Entry(String title, String summary, String link, String image) {
-            this.title = title;
-            this.summary = summary;
-            this.link = link;
-            this.image = image;
         }
     }
 
@@ -120,10 +114,13 @@ public class Feed {
                 title = readTitle(parser);
             } else if (name.equals("description")) {
                 summary = readSummary(parser);
+                image = fetchImage(summary);
             } else if (name.equals("link")) {
                 link = readLink(parser);
             } else if (name.equals("media:thumbnail")) {
-                image = readImage(parser);
+                if (image == null) {
+                    image = readImage(parser);
+                }
             } else {
                 skip(parser);
             }
@@ -174,6 +171,17 @@ public class Feed {
         parser.require(XmlPullParser.END_TAG, ns, "media:thumbnail");
         return image;
     }
+
+    public String fetchImage(String body) {
+        //img src="http://www.wired.com/wp-content/uploads/2015/02/184855511-660x440.jpg"
+        Pattern p = Pattern.compile("img.+?src.+?[\'\"](.+?)[\'\"]");
+        //Pattern p = Pattern.compile(".*img(.*)>");
+        Matcher m = p.matcher(body);
+        if (m.find()) {
+            Log.d("RSSTrace", m.groupCount() + "=>" + m.group(1));
+        }
+        return m.group(1);
+    }
     // For the tags title and summary, extracts their text values.
     private String readText(XmlPullParser parser) throws IOException, XmlPullParserException {
         String result = "";
@@ -196,6 +204,40 @@ public class Feed {
                 case XmlPullParser.START_TAG:
                     depth++;
                     break;
+            }
+        }
+    }
+
+
+    public class Entry {
+        public final String title;
+        public final String link;
+        public final String summary;
+        public Bitmap bitmap;
+
+
+        private Entry(String title, String summary, String link, String image) {
+            this.title = title;
+            this.summary = summary;
+            this.link = link;
+            new LoadImage().execute(image);
+        }
+
+        private class LoadImage extends AsyncTask<String, String, Bitmap> {
+            @Override
+            protected Bitmap doInBackground(String... args) {
+                try {
+                    bitmap = BitmapFactory.decodeStream((InputStream) new URL(args[0]).getContent());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return bitmap;
+            }
+
+            @Override
+            protected void onPostExecute(Bitmap bitmap) {
+                super.onPostExecute(bitmap);
+                adapter.add(Entry.this);
             }
         }
     }

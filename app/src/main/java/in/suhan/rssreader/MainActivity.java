@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
 
     public void fetchFeed(View v){
         TextView txt = (TextView) findViewById(R.id.url);
-
+        adapter.removeAll();
         Feed feed = new Feed(this,txt.getText().toString(), adapter);
 
     }
