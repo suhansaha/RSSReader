@@ -86,6 +86,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     public void toggleAnimation(boolean willAnimate) {
         this.willAnimate = willAnimate;
     }
+
     public void add(Feed.Entry item) {
         dataList.add(item);
         notifyItemInserted(dataList.indexOf(item));
@@ -101,7 +102,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         return dataList.size();
     }
 
-    private void doTransition(View v){
+    private void doTransition(View v) {
         int i = (int) v.getTag();
         Log.d("RSSTrace", "Item Clicked: " + i);
 
@@ -142,6 +143,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 adapter.resetScrollDelay();
+                willAnimate = true;
                 super.onScrolled(recyclerView, dx, dy);
             }
         };
