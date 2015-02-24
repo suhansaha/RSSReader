@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="72dp">
+    android:layout_width="wrap_content"
+    android:layout_height="200dp"
+    android:layout_margin="1dp">
 
     <ImageView
         android:id="@+id/feedThumb"
-        android:layout_width="72dp"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_centerVertical="true"
         android:adjustViewBounds="true"
         android:scaleType="fitXY"
         android:src="@drawable/rss" />
@@ -17,10 +15,12 @@
     <TextView
         android:id="@+id/feedTitle"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerVertical="true"
-        android:layout_toEndOf="@id/feedThumb"
-        android:layout_toRightOf="@id/feedThumb"
-        android:gravity="center_vertical"
-        android:text="New Text" />
+        android:layout_height="68dp"
+        android:layout_alignParentBottom="true"
+        android:background="#44000000"
+        android:ellipsize="end"
+        android:padding="16dp"
+        android:text="New Text"
+        android:textColor="#ffffff"
+        android:textSize="14sp" />
 </RelativeLayout>

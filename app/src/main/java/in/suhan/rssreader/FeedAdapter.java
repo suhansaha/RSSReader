@@ -2,6 +2,7 @@ package in.suhan.rssreader;
 
 
 import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -66,9 +67,16 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.CardAdapterHol
 
         holder.view.setTag(position);
 
-        holder.view.setTranslationX(800);
-        ObjectAnimator animator = ObjectAnimator.ofFloat(holder.view, View.TRANSLATION_X, 0);
-        animator.setStartDelay(100 * scrollDelay);
+        //holder.view.setTranslationX(800);
+        holder.view.setScaleX(0);
+        holder.view.setScaleY(0);
+
+        PropertyValuesHolder propx = PropertyValuesHolder.ofFloat("scaleX", 1);
+        PropertyValuesHolder propy = PropertyValuesHolder.ofFloat("scaleY", 1);
+
+        ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(holder.view, propx, propy);
+        animator.setDuration(100);
+        animator.setStartDelay(300 * scrollDelay);
         scrollDelay++;
         animator.setDuration(200);
         animator.start();

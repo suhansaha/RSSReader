@@ -1,28 +1,29 @@
 package in.suhan.rssreader;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.WebView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends ActionBarActivity {
     private FeedAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.FeedList);
         List<Feed.Entry> list = new ArrayList<Feed.Entry>();
@@ -39,7 +40,9 @@ public class MainActivity extends Activity {
 
         recyclerView.setOnScrollListener(scrollListener);
         recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+
+        fetchFeed();
 
     }
 
@@ -59,14 +62,15 @@ public class MainActivity extends Activity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_refresh) {
+            fetchFeed();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    public void fetchFeed(View v){
+    public void fetchFeed() {
         TextView txt = (TextView) findViewById(R.id.url);
         adapter.removeAll();
         Feed feed = new Feed(this,txt.getText().toString(), adapter);
