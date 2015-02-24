@@ -62,6 +62,7 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_refresh) {
+            adapter.toggleAnimation(true);
             fetchFeed();
             return true;
         }

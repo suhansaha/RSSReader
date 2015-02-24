@@ -18,9 +18,9 @@
         android:gravity="center_vertical"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
-        android:text="http://feeds.wired.com/wired/index" />
+        android:text="http://www.suhan.in/rss.xml" />
 
-
+    <!--http://feeds.wired.com/wired/index-->
     <android.support.v7.widget.RecyclerView
         android:id="@+id/FeedList"
         android:layout_width="match_parent"

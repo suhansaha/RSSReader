@@ -10,8 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:adjustViewBounds="true"
-        android:scaleType="fitXY"
-        android:src="@drawable/rss" />
+        android:scaleType="fitXY" />
 
     <TextView
         android:id="@+id/feedTitle"

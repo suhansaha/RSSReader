@@ -1,6 +1,7 @@
 package in.suhan.rssreader;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -179,8 +180,9 @@ public class Feed {
         Matcher m = p.matcher(body);
         if (m.find()) {
             Log.d("RSSTrace", m.groupCount() + "=>" + m.group(1));
+            return m.group(1);
         }
-        return m.group(1);
+        return null;
     }
     // For the tags title and summary, extracts their text values.
     private String readText(XmlPullParser parser) throws IOException, XmlPullParserException {
@@ -220,7 +222,13 @@ public class Feed {
             this.title = title;
             this.summary = summary;
             this.link = link;
-            new LoadImage().execute(image);
+            if (image != null) {
+                new LoadImage().execute(image);
+            } else {
+                bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.rss);
+
+                adapter.add(this);
+            }
         }
 
         private class LoadImage extends AsyncTask<String, String, Bitmap> {

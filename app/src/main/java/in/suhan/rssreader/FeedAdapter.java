@@ -35,6 +35,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     private LayoutInflater inflater;
     private List<Feed.Entry> dataList = Collections.emptyList();
     private ViewGroup mViewGroup;
+    private Boolean willAnimate = true;
 
     public FeedAdapter(ActionBarActivity context, List<Feed.Entry> dataList) {
         this.context = context;
@@ -65,21 +66,26 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
 
         holder.view.setTag(position);
 
-        //holder.view.setTranslationX(800);
-        holder.view.setScaleX(0);
-        holder.view.setScaleY(0);
+        if (willAnimate) {
+            //holder.view.setTranslationX(800);
+            holder.view.setScaleX(0);
+            holder.view.setScaleY(0);
 
-        PropertyValuesHolder propx = PropertyValuesHolder.ofFloat("scaleX", 1);
-        PropertyValuesHolder propy = PropertyValuesHolder.ofFloat("scaleY", 1);
+            PropertyValuesHolder propx = PropertyValuesHolder.ofFloat("scaleX", 1);
+            PropertyValuesHolder propy = PropertyValuesHolder.ofFloat("scaleY", 1);
 
-        ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(holder.view, propx, propy);
-        animator.setDuration(100);
-        animator.setStartDelay(300 * scrollDelay);
-        scrollDelay++;
-        animator.setDuration(200);
-        animator.start();
+            ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(holder.view, propx, propy);
+            animator.setDuration(100);
+            animator.setStartDelay(300 * scrollDelay);
+            scrollDelay++;
+            animator.setDuration(200);
+            animator.start();
+        }
     }
 
+    public void toggleAnimation(boolean willAnimate) {
+        this.willAnimate = willAnimate;
+    }
     public void add(Feed.Entry item) {
         dataList.add(item);
         notifyItemInserted(dataList.indexOf(item));
@@ -125,6 +131,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     }
 
     public void doReverseTransition(final FeedAdapter adapter) {
+        toggleAnimation(false);
         ViewGroup sceneRoot = (ViewGroup) context.findViewById(R.id.sceneRoot);
 
         ViewGroup viewContainer = (ViewGroup) inflater.inflate(R.layout.feed_list_layout, mViewGroup, false);
