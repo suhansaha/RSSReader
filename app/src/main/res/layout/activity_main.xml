@@ -4,27 +4,13 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <include
-        android:id="@+id/toolbar"
-        layout="@layout/toolbar" />
-
-
-    <EditText
-        android:id="@+id/url"
+    <FrameLayout
+        android:id="@+id/sceneRoot"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/toolbar"
-        android:background="@color/primaryColor"
-        android:elevation="5dp"
-        android:padding="16dp"
-        android:text="http://feeds.wired.com/wired/index" />
+        android:layout_height="match_parent">
 
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/FeedList"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/url">
-
-    </android.support.v7.widget.RecyclerView>
+        <include
+            android:id="@+id/display"
+            layout="@layout/feed_list_layout" />
+    </FrameLayout>
 </RelativeLayout>

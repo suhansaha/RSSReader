@@ -29,7 +29,6 @@ public class MainActivity extends ActionBarActivity {
         List<Feed.Entry> list = new ArrayList<Feed.Entry>();
         adapter = new FeedAdapter(this,list);
 
-
         RecyclerView.OnScrollListener scrollListener = new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -75,5 +74,14 @@ public class MainActivity extends ActionBarActivity {
         adapter.removeAll();
         Feed feed = new Feed(this,txt.getText().toString(), adapter);
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (adapter.state) {
+            adapter.doReverseTransition(adapter);
+        } else {
+            super.onBackPressed();
+        }
     }
 }
