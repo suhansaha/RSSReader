@@ -2,12 +2,9 @@ package in.suhan.rssreader;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -22,25 +19,10 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        List<Feed.Entry> list = new ArrayList<>();
+        adapter = new FeedAdapter(this, list);
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.FeedList);
-        List<Feed.Entry> list = new ArrayList<Feed.Entry>();
-        adapter = new FeedAdapter(this,list);
-
-        RecyclerView.OnScrollListener scrollListener = new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                adapter.resetScrollDelay();
-                super.onScrolled(recyclerView, dx, dy);
-            }
-        };
-
-        recyclerView.setOnScrollListener(scrollListener);
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-
+        adapter.createRSSList((ViewGroup) findViewById(R.id.sceneRoot));
         fetchFeed();
 
     }
@@ -73,14 +55,14 @@ public class MainActivity extends ActionBarActivity {
     public void fetchFeed() {
         TextView txt = (TextView) findViewById(R.id.url);
         adapter.removeAll();
-        Feed feed = new Feed(this,txt.getText().toString(), adapter);
+        Feed feed = new Feed(this, txt.getText().toString(), adapter);
 
     }
 
     @Override
     public void onBackPressed() {
         if (adapter.state) {
-            adapter.doReverseTransition(adapter);
+            adapter.doReverseTransition();
         } else {
             super.onBackPressed();
         }

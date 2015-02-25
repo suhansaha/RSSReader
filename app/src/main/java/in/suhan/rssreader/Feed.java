@@ -1,13 +1,11 @@
 package in.suhan.rssreader;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Xml;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -24,14 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by ssaha8 on 23/02/2015.
- */
 public class Feed {
     private static final String ns = null;
     public FeedAdapter adapter;
@@ -90,7 +83,6 @@ public class Feed {
             if (name.equals("item")) {
                 readEntry(parser);
             } else if(name.equals("channel")){
-                continue;
             }
             else {
                 skip(parser);
@@ -139,7 +131,7 @@ public class Feed {
 
     // Processes link tags in the feed.
     private String readLink(XmlPullParser parser) throws IOException, XmlPullParserException {
-        String link = "";
+        String link;
         parser.require(XmlPullParser.START_TAG, ns, "link");
         //String tag = parser.getName();
         /*String relType = parser.getAttributeValue(null, "rel");
