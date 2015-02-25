@@ -1,13 +1,11 @@
 package in.suhan.rssreader;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Xml;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -24,19 +22,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by ssaha8 on 23/02/2015.
- */
-public class Feed {
+class Feed {
     private static final String ns = null;
-    public FeedAdapter adapter;
-    private String url;
-    private Context context;
+    private final FeedAdapter adapter;
+    private final String url;
+    private final Context context;
 
     public Feed(Context context, String url, FeedAdapter adapter) {
         this.url = url;
@@ -44,7 +37,8 @@ public class Feed {
         this.adapter = adapter;
         getFeedData();
     }
-    public void getFeedData(){
+
+    void getFeedData() {
         RequestQueue queue = Volley.newRequestQueue(context);
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -71,9 +65,7 @@ public class Feed {
             parser.setInput(new StringReader(response));
             parser.nextTag();
             readFeed(parser);
-        }catch (XmlPullParserException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -87,9 +79,11 @@ public class Feed {
             }
             String name = parser.getName();
             // Starts by looking for the entry tag
+            //noinspection IfCanBeSwitch
             if (name.equals("item")) {
                 readEntry(parser);
             } else if(name.equals("channel")){
+                //noinspection UnnecessaryContinue
                 continue;
             }
             else {
@@ -111,6 +105,7 @@ public class Feed {
                 continue;
             }
             String name = parser.getName();
+            //noinspection IfCanBeSwitch
             if (name.equals("title")) {
                 title = readTitle(parser);
             } else if (name.equals("description")) {
@@ -139,7 +134,7 @@ public class Feed {
 
     // Processes link tags in the feed.
     private String readLink(XmlPullParser parser) throws IOException, XmlPullParserException {
-        String link = "";
+        String link;
         parser.require(XmlPullParser.START_TAG, ns, "link");
         //String tag = parser.getName();
         /*String relType = parser.getAttributeValue(null, "rel");
@@ -173,7 +168,7 @@ public class Feed {
         return image;
     }
 
-    public String fetchImage(String body) {
+    String fetchImage(String body) {
         //img src="http://www.wired.com/wp-content/uploads/2015/02/184855511-660x440.jpg"
         Pattern p = Pattern.compile("img.+?src.+?[\'\"](.+?)[\'\"]");
         //Pattern p = Pattern.compile(".*img(.*)>");

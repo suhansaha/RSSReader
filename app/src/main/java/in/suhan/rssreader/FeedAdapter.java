@@ -3,36 +3,29 @@ package in.suhan.rssreader;
 
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
-import android.app.Activity;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.transitions.everywhere.Fade;
 import android.transitions.everywhere.Transition;
-import android.transitions.everywhere.ChangeBounds;
 import android.transitions.everywhere.TransitionManager;
-import android.transitions.everywhere.Scene;
-import android.util.Log;
+import android.transitions.everywhere.TransitionSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.zip.Inflater;
 
-/**
- * Created by ssaha8 on 18/02/2015.
- */
 public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHolder> {
     private static int scrollDelay = 0;
+    private final ActionBarActivity context;
+    private final LayoutInflater inflater;
     public boolean state = false;
-    private ActionBarActivity context;
-    private LayoutInflater inflater;
     private List<Feed.Entry> dataList = Collections.emptyList();
     private ViewGroup mViewGroup;
     private Boolean willAnimate = true;
@@ -50,11 +43,9 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         return new FeedAdapterHolder(view);
     }
 
-    public void resetScrollDelay() {
-        int temp = scrollDelay;
-
+    void resetScrollDelay() {
         scrollDelay = 0;
-        Log.d("MaterialAnimationTrace", "Resetted scrolldelay old: " + temp + ", new: " + scrollDelay);
+        //Log.d("MaterialAnimationTrace", "Resetted scrolldelay old: " + temp + ", new: " + scrollDelay);
     }
 
     @Override
@@ -67,7 +58,6 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         holder.view.setTag(position);
 
         if (willAnimate) {
-            //holder.view.setTranslationX(800);
             holder.view.setScaleX(0);
             holder.view.setScaleY(0);
 
@@ -104,13 +94,13 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
 
     private void doTransition(View v) {
         int i = (int) v.getTag();
-        Log.d("RSSTrace", "Item Clicked: " + i);
+        //Log.d("RSSTrace", "Item Clicked: " + i);
 
         ViewGroup sceneRoot = (ViewGroup) context.findViewById(R.id.sceneRoot);
 
         View view = inflater.inflate(R.layout.feed_content_layout, mViewGroup, false);
-        ImageView img = (ImageView) view.findViewById(R.id.imageView);
-        TextView title = (TextView) view.findViewById(R.id.textView);
+        ImageView img = (ImageView) view.findViewById(R.id.feedThumb);
+        TextView title = (TextView) view.findViewById(R.id.feedTitle);
         TextView body = (TextView) view.findViewById(R.id.textView2);
 
         Feed.Entry item = dataList.get(i);
@@ -119,21 +109,38 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         title.setText(item.title);
         body.setText(Html.fromHtml(item.summary));
 
-        Scene mSceneA = Scene.getSceneForLayout(sceneRoot, R.layout.feed_list_layout, context);
-        Scene mSceneB = new Scene(sceneRoot, view);
+        Transition fadeOut = new Fade(Fade.OUT);
+        fadeOut.removeTarget(v);
+        fadeOut.setDuration(600);
 
-        Transition transition = new ChangeBounds();
-        transition.setDuration(5000);
-        transition.addTarget(v);
+        Transition slide = new SlideTransition();
+        slide.addTarget(v);
+        slide.addTarget(view);
+        slide.setDuration(500);
 
-        TransitionManager.go(mSceneB, transition);
+        TransitionSet trSet = new TransitionSet();
+        trSet.setOrdering(TransitionSet.ORDERING_TOGETHER);
+        trSet.addTransition(fadeOut).addTransition(slide);
+
+        TransitionManager.beginDelayedTransition(sceneRoot, trSet);
+        sceneRoot.removeAllViews();
+        sceneRoot.addView(view);
+        sceneRoot.bringChildToFront(view);
         state = true;
 
     }
 
-    public void doReverseTransition(final FeedAdapter adapter) {
+    public void doReverseTransition() {
         toggleAnimation(false);
+
         ViewGroup sceneRoot = (ViewGroup) context.findViewById(R.id.sceneRoot);
+        TransitionManager.beginDelayedTransition(sceneRoot);
+        createRSSList(sceneRoot);
+
+        state = false;
+    }
+
+    public void createRSSList(ViewGroup sceneRoot) {
 
         ViewGroup viewContainer = (ViewGroup) inflater.inflate(R.layout.feed_list_layout, mViewGroup, false);
 
@@ -142,14 +149,14 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         RecyclerView.OnScrollListener scrollListener = new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                adapter.resetScrollDelay();
+                resetScrollDelay();
                 willAnimate = true;
                 super.onScrolled(recyclerView, dx, dy);
             }
         };
 
         recyclerView.setOnScrollListener(scrollListener);
-        recyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(this);
         recyclerView.setLayoutManager(new GridLayoutManager(context, 2));
 
         Toolbar toolbar = (Toolbar) viewContainer.findViewById(R.id.toolbar);
@@ -158,19 +165,12 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         sceneRoot.removeAllViews();
         sceneRoot.addView(viewContainer);
 
-
-        /*Scene mSceneA = new Scene(sceneRoot, recyclerView);
-
-        Transition transition = new ChangeBounds();
-        transition.setDuration(5000);
-        TransitionManager.go(mSceneA, transition);*/
-        state = false;
     }
 
     public class FeedAdapterHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private ImageView imageView;
-        private TextView textView;
-        private View view;
+        private final ImageView imageView;
+        private final TextView textView;
+        private final View view;
 
         public FeedAdapterHolder(View itemView) {
             super(itemView);
