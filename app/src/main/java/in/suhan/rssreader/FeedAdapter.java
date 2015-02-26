@@ -13,6 +13,7 @@ import android.transitions.everywhere.Transition;
 import android.transitions.everywhere.TransitionManager;
 import android.transitions.everywhere.TransitionSet;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -97,8 +98,12 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         //Log.d("RSSTrace", "Item Clicked: " + i);
 
         ViewGroup sceneRoot = (ViewGroup) context.findViewById(R.id.sceneRoot);
+        View currentView = sceneRoot.findViewById(R.id.feedContainer);
 
         View view = inflater.inflate(R.layout.feed_content_layout, mViewGroup, false);
+        //view.setVisibility(View.GONE);
+        //sceneRoot.addView(view);
+        //View view = sceneRoot.findViewById(R.id.feedContentContainer);
         ImageView img = (ImageView) view.findViewById(R.id.feedThumb);
         TextView title = (TextView) view.findViewById(R.id.feedTitle);
         TextView body = (TextView) view.findViewById(R.id.textView2);
@@ -109,10 +114,6 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         title.setText(item.title);
         body.setText(Html.fromHtml(item.summary));
 
-        Transition fadeOut = new Fade(Fade.OUT);
-        fadeOut.removeTarget(v);
-        fadeOut.setDuration(600);
-
         Transition slide = new SlideTransition();
         slide.addTarget(v);
         slide.addTarget(view);
@@ -120,22 +121,25 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
 
         TransitionSet trSet = new TransitionSet();
         trSet.setOrdering(TransitionSet.ORDERING_TOGETHER);
-        trSet.addTransition(fadeOut).addTransition(slide);
+        trSet.addTransition(slide);
 
         TransitionManager.beginDelayedTransition(sceneRoot, trSet);
-        sceneRoot.removeAllViews();
         sceneRoot.addView(view);
-        sceneRoot.bringChildToFront(view);
+
         state = true;
 
     }
-
     public void doReverseTransition() {
         toggleAnimation(false);
 
         ViewGroup sceneRoot = (ViewGroup) context.findViewById(R.id.sceneRoot);
-        TransitionManager.beginDelayedTransition(sceneRoot);
-        createRSSList(sceneRoot);
+        View currentView = sceneRoot.findViewById(R.id.feedContentContainer);
+        View nextView = sceneRoot.findViewById(R.id.feedContainer);
+
+        Transition transition = new SlideTransition();
+        transition.addTarget(currentView);
+        TransitionManager.beginDelayedTransition(sceneRoot, transition);
+        sceneRoot.removeView(currentView);
 
         state = false;
     }
@@ -161,8 +165,31 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
 
         Toolbar toolbar = (Toolbar) viewContainer.findViewById(R.id.toolbar);
         context.setSupportActionBar(toolbar);
+        //context.getSupportActionBar().setHideOnContentScrollEnabled(true);
 
-        sceneRoot.removeAllViews();
+        if (willAnimate) {
+            View view1 = toolbar.getChildAt(0);
+            View view2 = toolbar.getChildAt(1);
+            View viewUrl = viewContainer.findViewById(R.id.url);
+
+            toolbar.setAlpha(0);
+            toolbar.setTranslationY(-300);
+            view1.setTranslationY(-300);
+            view2.setTranslationY(-300);
+            viewUrl.setTranslationY(-300);
+            viewUrl.setAlpha(0);
+
+
+            viewContainer.bringChildToFront(toolbar);
+            viewContainer.requestLayout();
+            viewContainer.invalidate();
+
+            toolbar.animate().setDuration(1000).translationY(0).alpha(1);
+            view1.animate().setStartDelay(900).setDuration(1000).translationY(0);
+            view2.animate().setStartDelay(900).setDuration(1000).translationY(0);
+            viewUrl.animate().setStartDelay(1000).setDuration(1000).translationY(0).alpha(1);
+        }
+
         sceneRoot.addView(viewContainer);
 
     }
