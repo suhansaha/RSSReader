@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -30,6 +31,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     private List<Feed.Entry> dataList = Collections.emptyList();
     private ViewGroup mViewGroup;
     private Boolean willAnimate = true;
+    private View sharedView;
 
     public FeedAdapter(ActionBarActivity context, List<Feed.Entry> dataList) {
         this.context = context;
@@ -95,18 +97,13 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
 
     private void doTransition(View v) {
         int i = (int) v.getTag();
-        //Log.d("RSSTrace", "Item Clicked: " + i);
 
         ViewGroup sceneRoot = (ViewGroup) context.findViewById(R.id.sceneRoot);
-        View currentView = sceneRoot.findViewById(R.id.feedContainer);
 
-        View view = inflater.inflate(R.layout.feed_content_layout, mViewGroup, false);
-        //view.setVisibility(View.GONE);
-        //sceneRoot.addView(view);
-        //View view = sceneRoot.findViewById(R.id.feedContentContainer);
-        ImageView img = (ImageView) view.findViewById(R.id.feedThumb);
-        TextView title = (TextView) view.findViewById(R.id.feedTitle);
-        TextView body = (TextView) view.findViewById(R.id.textView2);
+        View view = sceneRoot.findViewById(R.id.feedContentContainer);
+        final ImageView img = (ImageView) view.findViewById(R.id.feedThumb);
+        final TextView title = (TextView) view.findViewById(R.id.feedTitle);
+        final TextView body = (TextView) view.findViewById(R.id.textView2);
 
         Feed.Entry item = dataList.get(i);
 
@@ -114,32 +111,63 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         title.setText(item.title);
         body.setText(Html.fromHtml(item.summary));
 
-        Transition slide = new SlideTransition();
-        slide.addTarget(v);
-        slide.addTarget(view);
-        slide.setDuration(500);
+        sharedView = v;
+        int[] screenLocation = new int[2];
+        v.getLocationOnScreen(screenLocation);
+        img.setPivotX(0);
+        img.setPivotY(0);
+        img.setTranslationX(screenLocation[0]);
+        img.setTranslationY(screenLocation[1]);
+        img.setScaleX((float) v.getWidth() / img.getWidth());
+        img.setScaleY((float) v.getHeight() / img.getHeight());
+        img.setAlpha(0.1f);
+        view.setAlpha(1f);
+        view.setVisibility(View.VISIBLE);
+        title.setPivotY(0);
+        body.setPivotY(0);
+        title.setScaleY(0f);
+        body.setScaleY(0f);
+        v.setAlpha(0f);
 
-        TransitionSet trSet = new TransitionSet();
-        trSet.setOrdering(TransitionSet.ORDERING_TOGETHER);
-        trSet.addTransition(slide);
-
-        TransitionManager.beginDelayedTransition(sceneRoot, trSet);
-        sceneRoot.addView(view);
+        img.animate().setStartDelay(0).setDuration(500).translationX(0).translationY(0).scaleX(1).alpha(1).withEndAction(new Runnable() {
+            @Override
+            public void run() {
+                img.animate().setStartDelay(300).setDuration(600).scaleY(1f);
+                title.animate().setStartDelay(900).setDuration(600).scaleY(1f);
+                body.animate().setStartDelay(1500).setDuration(600).scaleY(1f);
+            }
+        });
 
         state = true;
 
     }
+
     public void doReverseTransition() {
         toggleAnimation(false);
 
         ViewGroup sceneRoot = (ViewGroup) context.findViewById(R.id.sceneRoot);
-        View currentView = sceneRoot.findViewById(R.id.feedContentContainer);
-        View nextView = sceneRoot.findViewById(R.id.feedContainer);
+        final View view = sceneRoot.findViewById(R.id.feedContentContainer);
+        final ImageView img = (ImageView) view.findViewById(R.id.feedThumb);
+        final TextView title = (TextView) view.findViewById(R.id.feedTitle);
+        final TextView body = (TextView) view.findViewById(R.id.textView2);
 
-        Transition transition = new SlideTransition();
-        transition.addTarget(currentView);
-        TransitionManager.beginDelayedTransition(sceneRoot, transition);
-        sceneRoot.removeView(currentView);
+        img.setPivotX(0);
+        img.setPivotY(0);
+        title.setPivotY(0);
+        body.setPivotY(0);
+
+        int[] screenLocation = new int[2];
+        sharedView.getLocationOnScreen(screenLocation);
+
+        body.animate().setStartDelay(0).setDuration(600).scaleY(0);
+        title.animate().setDuration(300).setStartDelay(600).scaleY(0);
+        img.animate().setDuration(500).setStartDelay(900).translationY(screenLocation[1] - 100).scaleX((float) sharedView.getWidth() / img.getWidth()).scaleY((float) sharedView.getHeight() / img.getHeight()).translationX(screenLocation[0]).withEndAction(new Runnable() {
+            @Override
+            public void run() {
+                sharedView.setAlpha(1f);
+                view.setVisibility(View.INVISIBLE);
+            }
+        });
 
         state = false;
     }
@@ -192,6 +220,11 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
 
         sceneRoot.addView(viewContainer);
 
+        View view = inflater.inflate(R.layout.feed_content_layout, mViewGroup, false);
+        sceneRoot.addView(view);
+        view.setAlpha(0f);
+        view.setVisibility(View.INVISIBLE);
+
     }
 
     public class FeedAdapterHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -203,7 +236,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
             super(itemView);
             view = itemView;
             imageView = (ImageView) itemView.findViewById(R.id.feedThumb);
-            textView = (TextView) itemView.findViewById(R.id.feedTitle);
+            textView = (TextView) itemView.findViewById(R.id.feedBody);
             view.setOnClickListener(this);
         }
 
