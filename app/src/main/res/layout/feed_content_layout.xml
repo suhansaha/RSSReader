@@ -14,16 +14,24 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/feedThumb"
+            <FrameLayout
+                android:id="@+id/feedThumbContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                android:src="@drawable/rss" />
+                android:background="@android:color/transparent">
+
+                <ImageView
+                    android:id="@+id/feedThumb"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true"
+                    android:adjustViewBounds="true"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/rss" />
+
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/feedTitle"
@@ -31,7 +39,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@id/feedThumb"
                 android:layout_centerHorizontal="true"
-                android:background="@color/primaryColorTranslucent"
+                android:background="@color/primaryColor"
                 android:padding="16dp"
                 android:text="New Text"
                 android:textColor="#ffffff"
@@ -50,5 +58,26 @@
                 android:textSize="14sp" />
         </LinearLayout>
     </ScrollView>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@android:color/transparent">
+
+        <ImageButton
+            android:id="@+id/imageButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:onClick="goBack"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            android:id="@+id/toolbarTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="" />
+    </android.support.v7.widget.Toolbar>
 
 </RelativeLayout>
