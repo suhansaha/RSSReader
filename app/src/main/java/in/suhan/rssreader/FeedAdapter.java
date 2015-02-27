@@ -4,11 +4,13 @@ package in.suhan.rssreader;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.transitions.everywhere.Fade;
 import android.transitions.everywhere.Transition;
 import android.transitions.everywhere.TransitionManager;
@@ -52,7 +54,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
                     }
                 }*/
 
-            Log.d("ScrollTrace", dx + " , " + dy);
+            //Log.d("ScrollTrace", dx + " , " + dy);
             super.onScrolled(recyclerView, dx, dy);
         }
 
@@ -176,6 +178,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         dataList.removeAll(dataList);
     }
 
+
     @Override
     public int getItemCount() {
         return dataList.size();
@@ -199,8 +202,12 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         //Set data to widgets
         Feed.Entry item = dataList.get(i);
         feedImage.setImageBitmap(item.bitmap);
-        feedTitle.setText(item.title);
+        feedTitle.setText(Html.fromHtml("<a href=\"" + item.link + "\" >" + item.title + "</a>"));
+        //Log.d("SuhanTrace",Html.fromHtml(item.summary).toString());
+        //Log.d("SuhanTrace",item.summary.replaceAll("img.*?src",""));
         feedBody.setText(Html.fromHtml(item.summary));
+        feedTitle.setMovementMethod(LinkMovementMethod.getInstance());
+        feedBody.setMovementMethod(LinkMovementMethod.getInstance());
 
         sharedImageHeight = feedImageContainer.getHeight();
         //Log.d("SuhanTrace","" + sharedImageHeight);
@@ -358,5 +365,6 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
                 doTransition(v);
         }
     }
+
 }
 

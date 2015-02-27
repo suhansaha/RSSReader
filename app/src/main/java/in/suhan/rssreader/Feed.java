@@ -38,7 +38,7 @@ class Feed {
         getFeedData();
     }
 
-    void getFeedData() {
+    public void getFeedData() {
         RequestQueue queue = Volley.newRequestQueue(context);
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -50,14 +50,15 @@ class Feed {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(context, "Could not fetch feed from: "+url, Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "Could not fetch feed from: " + url, Toast.LENGTH_LONG).show();
             }
         });
 
         queue.add(stringRequest);
     }
-    private void processResponse(String response){
-        Log.d("RSSTrace", "Got Successful Response" + response.substring(1000,1100) );
+
+    private void processResponse(String response) {
+        //Log.d("RSSTrace", "Got Successful Response");
 
         try {
             XmlPullParser parser = Xml.newPullParser();
@@ -70,7 +71,8 @@ class Feed {
         }
 
     }
-    private void readFeed(XmlPullParser parser) throws XmlPullParserException, IOException{
+
+    private void readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
 
         parser.require(XmlPullParser.START_TAG, ns, "rss");
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -82,11 +84,10 @@ class Feed {
             //noinspection IfCanBeSwitch
             if (name.equals("item")) {
                 readEntry(parser);
-            } else if(name.equals("channel")){
+            } else if (name.equals("channel")) {
                 //noinspection UnnecessaryContinue
                 continue;
-            }
-            else {
+            } else {
                 skip(parser);
             }
         }
@@ -111,6 +112,7 @@ class Feed {
             } else if (name.equals("description")) {
                 summary = readSummary(parser);
                 image = fetchImage(summary);
+                summary = summary.replaceAll("img.*?src", "");
             } else if (name.equals("link")) {
                 link = readLink(parser);
             } else if (name.equals("media:thumbnail")) {
@@ -156,6 +158,7 @@ class Feed {
         parser.require(XmlPullParser.END_TAG, ns, "description");
         return summary;
     }
+
     private String readImage(XmlPullParser parser) throws IOException, XmlPullParserException {
         String image = "";
         parser.require(XmlPullParser.START_TAG, ns, "media:thumbnail");
@@ -174,11 +177,12 @@ class Feed {
         //Pattern p = Pattern.compile(".*img(.*)>");
         Matcher m = p.matcher(body);
         if (m.find()) {
-            Log.d("RSSTrace", m.groupCount() + "=>" + m.group(1));
+            //Log.d("RSSTrace", m.groupCount() + "=>" + m.group(1));
             return m.group(1);
         }
         return null;
     }
+
     // For the tags title and summary, extracts their text values.
     private String readText(XmlPullParser parser) throws IOException, XmlPullParserException {
         String result = "";
@@ -188,6 +192,7 @@ class Feed {
         }
         return result;
     }
+
     private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
         if (parser.getEventType() != XmlPullParser.START_TAG) {
             throw new IllegalStateException();

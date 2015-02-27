@@ -35,9 +35,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/primaryColor"
+                android:linksClickable="true"
                 android:padding="16dp"
                 android:text="New Text"
                 android:textColor="#ffffff"
+                android:textColorLink="#ffffff"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -46,9 +48,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="700dp"
                 android:background="#ffffff"
+                android:linksClickable="true"
                 android:padding="16dp"
                 android:text="Large Text"
                 android:textColor="#77000000"
+                android:textColorLink="@color/accentColor"
                 android:textSize="14sp" />
         </LinearLayout>
     </ScrollView>
