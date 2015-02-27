@@ -1,32 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/feedContentContainer"
+    android:id="@+id/feedContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <ScrollView
-        android:id="@+id/feedBody"
+        android:id="@+id/feedBodyScroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <FrameLayout
-                android:id="@+id/feedThumbContainer"
+                android:id="@+id/feedImageContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent">
 
                 <ImageView
-                    android:id="@+id/feedThumb"
+                    android:id="@+id/feedImage"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_alignParentTop="true"
+                    android:layout_height="match_parent"
                     android:adjustViewBounds="true"
                     android:scaleType="centerCrop"
                     android:src="@drawable/rss" />
@@ -37,8 +34,6 @@
                 android:id="@+id/feedTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/feedThumb"
-                android:layout_centerHorizontal="true"
                 android:background="@color/primaryColor"
                 android:padding="16dp"
                 android:text="New Text"
@@ -47,11 +42,10 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/feedBody"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="700dp"
                 android:background="#ffffff"
-                android:minHeight="700dp"
                 android:padding="16dp"
                 android:text="Large Text"
                 android:textColor="#77000000"
@@ -60,13 +54,13 @@
     </ScrollView>
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
+        android:id="@+id/feedToolbar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:background="@android:color/transparent">
 
         <ImageButton
-            android:id="@+id/imageButton"
+            android:id="@+id/toolbarBack"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"

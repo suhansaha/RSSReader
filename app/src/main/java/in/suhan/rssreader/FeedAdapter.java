@@ -35,8 +35,92 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     private List<Feed.Entry> dataList = Collections.emptyList();
     private ViewGroup mViewGroup;
     private Boolean willAnimate = true;
-    private View sharedView;
+    private RecyclerView.OnScrollListener scrollListener = new RecyclerView.OnScrollListener() {
+        @Override
+        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            resetScrollDelay();
+            willAnimate = true;
+                /*if(dy >= 10 ){
+                    if(url.getVisibility() != View.GONE) {
+                        url.setVisibility(View.GONE);
+                        context.getSupportActionBar().hide();
+                    }
+                }else{
+                    if(url.getVisibility() != View.VISIBLE) {
+                        url.setVisibility(View.VISIBLE);
+                        context.getSupportActionBar().show();
+                    }
+                }*/
+
+            Log.d("ScrollTrace", dx + " , " + dy);
+            super.onScrolled(recyclerView, dx, dy);
+        }
+
+    };
     private int prevScrollY = 0;
+    private ViewTreeObserver.OnScrollChangedListener feedScrollListener = new ViewTreeObserver.OnScrollChangedListener() {
+        @Override
+        public void onScrollChanged() {
+            int height;
+            int scrolly = feedBodyScroll.getScrollY();
+
+            ViewGroup.LayoutParams params = feedImageContainer.getLayoutParams();
+            if (params.height < 0) {
+                height = feedImageContainer.getHeight();
+            } else {
+                height = params.height;
+            }
+
+            int deltaY = scrolly - prevScrollY;
+            prevScrollY = scrolly;
+
+            if (scrolly < 20) {
+                feedImageContainer.setBackgroundColor(Color.argb(1, 0, 0, 0));
+            } else {
+                feedImageContainer.setBackgroundColor(context.getResources().getColor(R.color.primaryColor));
+            }
+
+
+            if (scrolly < (height * 0.4)) {
+                feedTitle.setVisibility(View.VISIBLE);
+                feedImageContainer.setVisibility(View.VISIBLE);
+                feedToolbarTitle.setText(" ");
+                feedToolbar.setBackgroundColor(Color.argb(1, 0, 0, 0));
+
+                params.height = height - deltaY;
+                feedImageContainer.setLayoutParams(params);
+                feedImage.setAlpha((float) (height - scrolly) / height);
+                //Log.d("SuhanTrace", "1 =>" + scrolly + " , " + deltaY + " , " + height);
+
+            } else if (scrolly < (height * 0.8)) {
+                feedToolbarTitle.setText(feedTitle.getText());
+                feedToolbar.setBackgroundColor(context.getResources().getColor(R.color.primaryColor));
+                feedTitle.setVisibility(View.GONE);
+                feedImageContainer.setVisibility(View.GONE);
+                feedToolbar.setVisibility(View.VISIBLE);
+                //Log.d("SuhanTrace", "2 =>" + scrolly + " , " + deltaY + " , " + height);
+            } else if (scrolly < (height * 0.9)) {
+                feedToolbar.setVisibility(View.INVISIBLE);
+            }
+        }
+
+    };
+    private boolean spawned = false;
+    private View sharedView;
+    private int sharedImageHeight;
+    private ViewGroup feedListLayout;
+    private RecyclerView feedListRView;
+    private Toolbar feedListToolbar;
+    private View urlBar;
+    private View feedContentLayout;
+    private View feedContainer;
+    private ImageView feedImage;
+    private View feedImageContainer;
+    private TextView feedTitle;
+    private TextView feedBody;
+    private Toolbar feedToolbar;
+    private TextView feedToolbarTitle;
+    private ScrollView feedBodyScroll;
 
     public FeedAdapter(ActionBarActivity context, List<Feed.Entry> dataList) {
         this.context = context;
@@ -60,9 +144,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     public void onBindViewHolder(FeedAdapterHolder holder, int position) {
         Feed.Entry item = dataList.get(position);
         holder.textView.setText(Html.fromHtml(item.title));
-
         holder.imageView.setImageBitmap(item.bitmap);
-
         holder.view.setTag(position);
 
         if (willAnimate) {
@@ -73,7 +155,6 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
             PropertyValuesHolder propy = PropertyValuesHolder.ofFloat("scaleY", 1);
 
             ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(holder.view, propx, propy);
-            animator.setDuration(100);
             animator.setStartDelay(300 * scrollDelay);
             scrollDelay++;
             animator.setDuration(200);
@@ -103,55 +184,63 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     private void doTransition(View v) {
         int i = (int) v.getTag();
 
-        ViewGroup sceneRoot = (ViewGroup) context.findViewById(R.id.sceneRoot);
-
-        View view = sceneRoot.findViewById(R.id.feedContentContainer);
-        final ImageView img = (ImageView) view.findViewById(R.id.feedThumb);
-        final TextView title = (TextView) view.findViewById(R.id.feedTitle);
-        final TextView body = (TextView) view.findViewById(R.id.textView2);
-        final Toolbar appbar = (Toolbar) view.findViewById(R.id.toolbar);
-        final TextView appbarTitle = (TextView) appbar.findViewById(R.id.toolbarTitle);
-        final ScrollView feedBody = (ScrollView) view.findViewById(R.id.feedBody);
-
+        //Reset Widgets
         feedBody.scrollTo(0, 0);
-        appbar.setVisibility(View.VISIBLE);
-        appbar.setBackgroundColor(Color.argb(1, 0, 0, 0));
-        appbarTitle.setText("");
-        Feed.Entry item = dataList.get(i);
+        feedToolbar.setVisibility(View.VISIBLE);
+        feedToolbar.setBackgroundColor(Color.argb(1, 0, 0, 0));
+        feedToolbarTitle.setText("");
 
-        ViewGroup.LayoutParams layoutParams = img.getLayoutParams();
+        feedImageContainer.setVisibility(View.VISIBLE);
+        ViewGroup.LayoutParams layoutParams = feedImageContainer.getLayoutParams();
         layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
         layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        img.setLayoutParams(layoutParams);
+        feedImageContainer.setLayoutParams(layoutParams);
 
-        img.setImageBitmap(item.bitmap);
-        title.setText(item.title);
-        body.setText(Html.fromHtml(item.summary));
+        //Set data to widgets
+        Feed.Entry item = dataList.get(i);
+        feedImage.setImageBitmap(item.bitmap);
+        feedTitle.setText(item.title);
+        feedBody.setText(Html.fromHtml(item.summary));
 
+        sharedImageHeight = feedImageContainer.getHeight();
+        //Log.d("SuhanTrace","" + sharedImageHeight);
+
+        //Store current view for reverse transition reference
         sharedView = v;
+
+        //Animation starts from here
         int[] screenLocation = new int[2];
         v.getLocationOnScreen(screenLocation);
-        img.setPivotX(0);
-        img.setPivotY(0);
-        img.setTranslationX(screenLocation[0]);
-        img.setTranslationY(screenLocation[1]);
-        img.setScaleX((float) v.getWidth() / img.getWidth());
-        img.setScaleY((float) v.getHeight() / img.getHeight());
-        img.setAlpha(0.1f);
-        view.setAlpha(1f);
-        view.setVisibility(View.VISIBLE);
-        title.setPivotY(0);
-        body.setPivotY(0);
-        title.setScaleY(0f);
-        body.setScaleY(0f);
+
+        feedImageContainer.setPivotX(0);
+        feedImageContainer.setPivotY(0);
+        feedImageContainer.setTranslationX(screenLocation[0]);
+        feedImageContainer.setTranslationY(screenLocation[1]);
+        feedImageContainer.setScaleX((float) v.getWidth() / feedImageContainer.getWidth());
+        feedImageContainer.setScaleY((float) v.getHeight() / feedImageContainer.getHeight());
+
+        feedContainer.setAlpha(1f);
+        feedContainer.setVisibility(View.VISIBLE);
         v.setAlpha(0f);
 
-        img.animate().setStartDelay(0).setDuration(500).translationX(0).translationY(0).scaleX(1).alpha(1).withEndAction(new Runnable() {
+        feedTitle.setPivotY(0);
+        feedBody.setPivotY(0);
+        feedTitle.setScaleY(0f);
+        feedBody.setScaleY(0f);
+
+        feedImageContainer.animate().setStartDelay(0).setDuration(500).translationX(0)
+                .translationY(0).scaleX(1).withEndAction(new Runnable() {
             @Override
             public void run() {
-                img.animate().setStartDelay(300).setDuration(600).scaleY(1f);
-                title.animate().setStartDelay(900).setDuration(600).scaleY(1f);
-                body.animate().setStartDelay(1500).setDuration(600).scaleY(1f);
+                feedImageContainer.animate().setStartDelay(300).setDuration(600).scaleY(1f)
+                        .withEndAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                sharedImageHeight = feedImage.getHeight();
+                            }
+                        });
+                feedTitle.animate().setStartDelay(900).setDuration(600).scaleY(1f);
+                feedBody.animate().setStartDelay(1500).setDuration(600).scaleY(1f);
             }
         });
 
@@ -162,38 +251,35 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     public void doReverseTransition() {
         toggleAnimation(false);
 
-        ViewGroup sceneRoot = (ViewGroup) context.findViewById(R.id.sceneRoot);
-        final View view = sceneRoot.findViewById(R.id.feedContentContainer);
-        final ImageView img = (ImageView) view.findViewById(R.id.feedThumb);
-        final TextView title = (TextView) view.findViewById(R.id.feedTitle);
-        final TextView body = (TextView) view.findViewById(R.id.textView2);
-        final View imgContainer = view.findViewById(R.id.feedThumbContainer);
-        final Toolbar appbar = (Toolbar) view.findViewById(R.id.toolbar);
-        final ScrollView feedBody = (ScrollView) view.findViewById(R.id.feedBody);
+        feedImageContainer.setBackgroundColor(Color.argb(1, 0, 0, 0));
+        feedImageContainer.setPivotX(0);
+        feedImageContainer.setPivotY(0);
+        feedTitle.setVisibility(View.VISIBLE);
 
-        imgContainer.setBackgroundColor(Color.argb(1, 0, 0, 0));
-        img.setPivotX(0);
-        img.setPivotY(0);
-        img.setVisibility(View.VISIBLE);
-        title.setVisibility(View.VISIBLE);
-        appbar.setVisibility(View.INVISIBLE);
-        ViewGroup.LayoutParams layoutParams = img.getLayoutParams();
-        layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        img.setLayoutParams(layoutParams);
-        feedBody.smoothScrollTo(0, 0);
-        title.setPivotY(0);
-        body.setPivotY(0);
+        feedImageContainer.setVisibility(View.VISIBLE);
+        feedBodyScroll.smoothScrollTo(0, 0);
+        ViewGroup.LayoutParams layoutParams = feedImageContainer.getLayoutParams();
+        layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        feedImageContainer.setLayoutParams(layoutParams);
+
+
+        feedTitle.setPivotY(0);
+        feedBody.setPivotY(0);
 
         int[] screenLocation = new int[2];
         sharedView.getLocationOnScreen(screenLocation);
-
-        body.animate().setStartDelay(0).setDuration(600).scaleY(0);
-        title.animate().setDuration(300).setStartDelay(600).scaleY(0);
-        img.animate().setDuration(500).setStartDelay(900).translationY(screenLocation[1] - 100).scaleX((float) sharedView.getWidth() / img.getWidth()).scaleY((float) sharedView.getHeight() / img.getHeight()).translationX(screenLocation[0]).withEndAction(new Runnable() {
+        Log.d("SuhanTrace", sharedView.getWidth() + "," + feedImage.getWidth() + "," + feedImage.getHeight());
+        feedBody.animate().setStartDelay(0).setDuration(600).scaleY(0);
+        feedTitle.animate().setDuration(300).setStartDelay(600).scaleY(0);
+        feedImageContainer.animate().setDuration(500).setStartDelay(900).translationY(screenLocation[1] - 100)
+                .scaleX((float) sharedView.getWidth() / feedImage.getWidth())
+                .scaleY((float) sharedView.getHeight() / sharedImageHeight)
+                .translationX(screenLocation[0]).withEndAction(new Runnable() {
             @Override
             public void run() {
                 sharedView.setAlpha(1f);
-                view.setVisibility(View.INVISIBLE);
+                feedContainer.setVisibility(View.INVISIBLE);
+                feedToolbar.setVisibility(View.INVISIBLE);
             }
         });
 
@@ -202,128 +288,55 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
 
     public void createRSSList(ViewGroup sceneRoot) {
 
-        ViewGroup viewContainer = (ViewGroup) inflater.inflate(R.layout.feed_list_layout, mViewGroup, false);
+        feedListLayout = (ViewGroup) inflater.inflate(R.layout.feed_list_layout, mViewGroup, false);
+        feedListRView = (RecyclerView) feedListLayout.findViewById(R.id.FeedList);
+        urlBar = feedListLayout.findViewById(R.id.url);
+        feedListToolbar = (Toolbar) feedListLayout.findViewById(R.id.toolbar);
 
-        RecyclerView recyclerView = (RecyclerView) viewContainer.findViewById(R.id.FeedList);
-        final View url = viewContainer.findViewById(R.id.url);
+        feedListRView.setOnScrollListener(scrollListener);
+        feedListRView.setAdapter(this);
+        feedListRView.setLayoutManager(new GridLayoutManager(context, 2));
 
-        RecyclerView.OnScrollListener scrollListener = new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                resetScrollDelay();
-                willAnimate = true;
-                /*if(dy >= 10 ){
-                    if(url.getVisibility() != View.GONE) {
-                        url.setVisibility(View.GONE);
-                        context.getSupportActionBar().hide();
-                    }
-                }else{
-                    if(url.getVisibility() != View.VISIBLE) {
-                        url.setVisibility(View.VISIBLE);
-                        context.getSupportActionBar().show();
-                    }
-                }*/
+        context.setSupportActionBar(feedListToolbar);
 
-                Log.d("ScrollTrace", dx + " , " + dy);
-                super.onScrolled(recyclerView, dx, dy);
-            }
+        if (willAnimate)
+            animateToolbar(feedListToolbar);
 
-        };
+        sceneRoot.addView(feedListLayout);
 
-        recyclerView.setOnScrollListener(scrollListener);
-        recyclerView.setAdapter(this);
-        recyclerView.setLayoutManager(new GridLayoutManager(context, 2));
+        feedContentLayout = inflater.inflate(R.layout.feed_content_layout, mViewGroup, false);
+        feedContainer = feedContentLayout.findViewById(R.id.feedContainer);
+        feedBodyScroll = (ScrollView) feedContentLayout.findViewById(R.id.feedBodyScroll);
+        feedImage = (ImageView) feedContentLayout.findViewById(R.id.feedImage);
+        feedImageContainer = feedContentLayout.findViewById(R.id.feedImageContainer);
+        feedTitle = (TextView) feedContentLayout.findViewById(R.id.feedTitle);
+        feedBody = (TextView) feedContentLayout.findViewById(R.id.feedBody);
+        feedToolbar = (Toolbar) feedContentLayout.findViewById(R.id.feedToolbar);
+        feedToolbarTitle = (TextView) feedContentLayout.findViewById(R.id.toolbarTitle);
 
-        Toolbar toolbar = (Toolbar) viewContainer.findViewById(R.id.toolbar);
-        context.setSupportActionBar(toolbar);
-        //context.getSupportActionBar().setHideOnContentScrollEnabled(true);
+        sceneRoot.addView(feedContentLayout);
+        feedContentLayout.setAlpha(0f);
+        feedContentLayout.setVisibility(View.INVISIBLE);
+        feedContentLayout.getViewTreeObserver().addOnScrollChangedListener(feedScrollListener);
 
-        if (willAnimate) {
-            View view1 = toolbar.getChildAt(0);
-            View view2 = toolbar.getChildAt(1);
-            View viewUrl = viewContainer.findViewById(R.id.url);
+        spawned = true;
+    }
 
-            toolbar.setAlpha(0);
-            toolbar.setTranslationY(-300);
-            view1.setTranslationY(-300);
-            view2.setTranslationY(-300);
-            viewUrl.setTranslationY(-300);
-            viewUrl.setAlpha(0);
+    private void animateToolbar(Toolbar toolbar) {
+        View view1 = toolbar.getChildAt(0);
+        View view2 = toolbar.getChildAt(1);
 
+        toolbar.setAlpha(0);
+        toolbar.setTranslationY(-300);
+        view1.setTranslationY(-300);
+        view2.setTranslationY(-300);
+        urlBar.setTranslationY(-300);
+        urlBar.setAlpha(0);
 
-            viewContainer.bringChildToFront(toolbar);
-            viewContainer.requestLayout();
-            viewContainer.invalidate();
-
-            toolbar.animate().setDuration(1000).translationY(0).alpha(1);
-            view1.animate().setStartDelay(900).setDuration(1000).translationY(0);
-            view2.animate().setStartDelay(900).setDuration(1000).translationY(0);
-            viewUrl.animate().setStartDelay(1000).setDuration(1000).translationY(0).alpha(1);
-        }
-
-        sceneRoot.addView(viewContainer);
-
-        View view = inflater.inflate(R.layout.feed_content_layout, mViewGroup, false);
-        sceneRoot.addView(view);
-        view.setAlpha(0f);
-        view.setVisibility(View.INVISIBLE);
-
-        final ScrollView sView = (ScrollView) view.findViewById(R.id.feedBody);
-        final View imgView = view.findViewById(R.id.feedThumb);
-        final TextView title = (TextView) view.findViewById(R.id.feedTitle);
-        final Toolbar appbar = (Toolbar) view.findViewById(R.id.toolbar);
-        final TextView appbarTitle = (TextView) appbar.findViewById(R.id.toolbarTitle);
-        final View imgContainer = view.findViewById(R.id.feedThumbContainer);
-
-        sView.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
-            @Override
-            public void onScrollChanged() {
-
-                int scrolly = sView.getScrollY();
-
-                ViewGroup.LayoutParams params = imgView.getLayoutParams();
-                int height;
-                if (params.height < 0) {
-                    height = imgView.getHeight();
-                } else {
-                    height = params.height;
-                }
-
-                int deltaY = scrolly - prevScrollY;
-                prevScrollY = scrolly;
-
-                if (scrolly < 20) {
-                    imgContainer.setBackgroundColor(Color.argb(1, 0, 0, 0));
-                } else {
-                    imgContainer.setBackgroundColor(context.getResources().getColor(R.color.primaryColor));
-                }
-                //view.scrollTo(0, 900);
-
-
-                if (scrolly < (height * 0.4)) {
-                    title.setVisibility(View.VISIBLE);
-                    imgView.setVisibility(View.VISIBLE);
-                    appbarTitle.setText(" ");
-                    params.height = height - deltaY;
-                    imgView.setLayoutParams(params);
-                    imgView.setAlpha((float) (height - scrolly) / height);
-                    appbar.setBackgroundColor(Color.argb(1, 0, 0, 0));
-                    Log.d("SuhanTrace", "1 =>" + scrolly + " , " + deltaY + " , " + height);
-
-                } else if (scrolly < (height * 0.8)) {
-                    appbarTitle.setText(title.getText());
-                    appbar.setBackgroundColor(context.getResources().getColor(R.color.primaryColor));
-                    title.setVisibility(View.GONE);
-                    imgView.setVisibility(View.GONE);
-                    appbar.setVisibility(View.VISIBLE);
-                    Log.d("SuhanTrace", "2 =>" + scrolly + " , " + deltaY + " , " + height);
-                } else if (scrolly < (height * 0.9)) {
-                    appbar.setVisibility(View.INVISIBLE);
-                }
-            }
-
-        });
-
+        toolbar.animate().setDuration(1000).translationY(0).alpha(1);
+        view1.animate().setStartDelay(900).setDuration(1000).translationY(0);
+        view2.animate().setStartDelay(900).setDuration(1000).translationY(0);
+        urlBar.animate().setStartDelay(1000).setDuration(1000).translationY(0).alpha(1);
     }
 
     public class FeedAdapterHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -341,7 +354,8 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
 
         @Override
         public void onClick(View v) {
-            doTransition(v);
+            if (spawned)
+                doTransition(v);
         }
     }
 }
