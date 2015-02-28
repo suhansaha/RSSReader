@@ -238,8 +238,12 @@ class Feed {
                     bitmap = BitmapFactory.decodeStream((InputStream) new URL(args[0]).getContent());
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
+                    if (bitmap == null) {
+                        bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.rss);
+                    }
+                    return bitmap;
                 }
-                return bitmap;
             }
 
             @Override

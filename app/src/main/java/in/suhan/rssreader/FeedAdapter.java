@@ -60,9 +60,14 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
 
     };
     private int prevScrollY = 0;
+    private int stability = 0;
     private ViewTreeObserver.OnScrollChangedListener feedScrollListener = new ViewTreeObserver.OnScrollChangedListener() {
         @Override
         public void onScrollChanged() {
+            if (stability > 0) {
+                stability--;
+                return;
+            }
             int height;
             int scrolly = feedBodyScroll.getScrollY();
 
@@ -82,8 +87,10 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
                 feedImageContainer.setBackgroundColor(context.getResources().getColor(R.color.primaryColor));
             }
 
-
-            if (scrolly < (height * 0.4)) {
+            float break1 = (float) (height * 0.4);
+            float break2 = (float) (height * 0.8);
+            float break3 = (float) (height * 0.9);
+            if (scrolly < break1) {
                 feedTitle.setVisibility(View.VISIBLE);
                 feedImageContainer.setVisibility(View.VISIBLE);
                 feedToolbarTitle.setText(" ");
@@ -94,14 +101,15 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
                 feedImage.setAlpha((float) (height - scrolly) / height);
                 //Log.d("SuhanTrace", "1 =>" + scrolly + " , " + deltaY + " , " + height);
 
-            } else if (scrolly < (height * 0.8)) {
+            } else if (scrolly < break2) {
+                stability = 1;
                 feedToolbarTitle.setText(feedTitle.getText());
                 feedToolbar.setBackgroundColor(context.getResources().getColor(R.color.primaryColor));
                 feedTitle.setVisibility(View.GONE);
                 feedImageContainer.setVisibility(View.GONE);
                 feedToolbar.setVisibility(View.VISIBLE);
                 //Log.d("SuhanTrace", "2 =>" + scrolly + " , " + deltaY + " , " + height);
-            } else if (scrolly < (height * 0.9)) {
+            } else if (scrolly < break3) {
                 feedToolbar.setVisibility(View.INVISIBLE);
             }
         }

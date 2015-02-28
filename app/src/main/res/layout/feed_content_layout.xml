@@ -35,12 +35,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/primaryColor"
+                android:lineSpacingMultiplier="1.25"
                 android:linksClickable="true"
                 android:padding="16dp"
                 android:text="New Text"
                 android:textColor="#ffffff"
                 android:textColorLink="#ffffff"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -48,12 +49,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="700dp"
                 android:background="#ffffff"
+                android:fontFamily="sans-serif-medium"
+                android:lineSpacingMultiplier="1.25"
                 android:linksClickable="true"
                 android:padding="16dp"
                 android:text="Large Text"
                 android:textColor="#77000000"
                 android:textColorLink="@color/accentColor"
-                android:textSize="14sp" />
+                android:textSize="16sp" />
         </LinearLayout>
     </ScrollView>
 
