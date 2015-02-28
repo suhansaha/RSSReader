@@ -24,6 +24,16 @@ public class AddRssFeedActivity extends ActionBarActivity {
     private static final int MENU_DELETE_ID = 1234;
     private static final int MENU_EDIT_ID = 1235;
     List<FeedSourceItem> rssSourceList;
+    String[] urlList = {"http://www.engadget.com/rss.xml",
+            "http://feeds.wired.com/wired/index",
+            "http://timesofindia.feedsportal.com/c/33039/f/533965/index.rss",
+            "http://feeds.bbci.co.uk/news/rss.xml?edition=uk",
+            "http://www.theguardian.com/world/rss",
+            "http://feeds.reuters.com/reuters/topNews",
+            "http://rss.nytimes.com/services/xml/rss/nyt/InternationalHome.xml",
+            "http://www.suhan.in/rss.xml"};
+    String[] titleList = {"Engadget", "Wired", "Times Of India", "BBC", "Guardian",
+            "Reuter", "Newyork Times", "Anandabazar"};
     private int current_note_id;
     private FeedDataSource rssSource;
 
@@ -41,10 +51,20 @@ public class AddRssFeedActivity extends ActionBarActivity {
         refreshDisplay();
     }
 
-
     private void refreshDisplay() {
         ListView lView = (ListView) findViewById(R.id.listView1);
         rssSourceList = rssSource.findAll();
+        if (rssSourceList.isEmpty()) {
+            for (int i = 0; i < urlList.length; i++) {
+                FeedSourceItem item = FeedSourceItem.getNew();
+                item.setFeedURL(urlList[i]);
+                item.setFeedTitle(titleList[i]);
+                rssSource.update(item);
+            }
+
+            rssSourceList = rssSource.findAll();
+        }
+
         //ArrayAdapter<SMSDataSource> adapter = new ArrayAdapter<SMSDataSource>(this, R.layout.list_item_layout, dataSource);
         FeedSourceAdapter adapter = new FeedSourceAdapter(this, R.layout.source_item_layout, rssSourceList);
 

@@ -239,7 +239,7 @@ class Feed {
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
-                    if (bitmap == null) {
+                    if (bitmap == null || bitmap.getWidth() < 10) {
                         bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.rss);
                     }
                     return bitmap;

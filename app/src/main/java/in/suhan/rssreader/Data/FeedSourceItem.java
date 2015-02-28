@@ -16,7 +16,7 @@ public class FeedSourceItem {
         Locale locale = new Locale("en_US");
         Locale.setDefault(locale);
 
-        String pattern = "yyyy-MM-dd HH:mm:ss Z";
+        String pattern = "yyyy-MM-dd HH:mm:ss.SSS Z";
         SimpleDateFormat formatter = new SimpleDateFormat(pattern);
 
         String key = formatter.format(new Date());

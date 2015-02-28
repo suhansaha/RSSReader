@@ -88,8 +88,8 @@ public class MainActivity extends ActionBarActivity {
             feed = new Feed(this, rssSourceList.get(index).getFeedURL(), adapter);
         } else {
             adapter.removeAll();
-            txt.setText("Default: Engadget");
-            feed = new Feed(this, "http://www.engadget.com/rss.xml", adapter);
+            txt.setText("Default: Anandabazar");
+            feed = new Feed(this, "http://www.suhan.in/rss.xml", adapter);
         }
 
     }
