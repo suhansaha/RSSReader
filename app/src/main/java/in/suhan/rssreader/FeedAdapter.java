@@ -3,9 +3,12 @@ package in.suhan.rssreader;
 
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,6 +30,10 @@ import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.android.volley.toolbox.ImageLoader;
+
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 
@@ -166,23 +173,25 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     public void onBindViewHolder(FeedAdapterHolder holder, int position) {
         Feed.Entry item = dataList.get(position);
         holder.textView.setText(Html.fromHtml(item.title));
-        holder.imageView.setImageBitmap(item.bitmap);
         holder.textView.setBackgroundColor(titleColors[position % titleColors.length]);
         holder.view.setTag(position);
 
-        if (willAnimate) {
-            holder.view.setScaleX(0);
-            holder.view.setScaleY(0);
 
-            PropertyValuesHolder propx = PropertyValuesHolder.ofFloat("scaleX", 1);
-            PropertyValuesHolder propy = PropertyValuesHolder.ofFloat("scaleY", 1);
+        //if (willAnimate) {
+        holder.view.setScaleX(0);
+        holder.view.setScaleY(0);
 
-            ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(holder.view, propx, propy);
-            animator.setStartDelay(300 * scrollDelay);
-            scrollDelay++;
-            animator.setDuration(200);
-            animator.start();
-        }
+        PropertyValuesHolder propx = PropertyValuesHolder.ofFloat("scaleX", 1);
+        PropertyValuesHolder propy = PropertyValuesHolder.ofFloat("scaleY", 1);
+
+        ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(holder.view, propx, propy);
+        animator.setStartDelay(300 * scrollDelay);
+        scrollDelay++;
+        animator.setDuration(200);
+        //animator.start();
+
+        new imageLoader(item, holder.imageView, animator);
+        //}
     }
 
     public void toggleAnimation(boolean willAnimate) {
@@ -198,7 +207,6 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         notifyItemRangeRemoved(0, dataList.size());
         dataList.removeAll(dataList);
     }
-
 
     @Override
     public int getItemCount() {
@@ -374,6 +382,59 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         view1.animate().setStartDelay(900).setDuration(1000).translationY(0);
         view2.animate().setStartDelay(900).setDuration(1000).translationY(0);
         //urlBar.animate().setStartDelay(1000).setDuration(1000).translationY(0).alpha(1);
+    }
+
+    private class imageLoader {
+        private Feed.Entry item;
+        private ObjectAnimator animator;
+        private ImageView imageView;
+
+        public imageLoader(Feed.Entry im, ImageView view, ObjectAnimator an) {
+            this.item = im;
+            this.animator = an;
+            this.imageView = view;
+
+            if (item.bitmap != null && !item.bitmap.isRecycled()) {
+                imageView.setImageBitmap(item.bitmap);
+                animator.start();
+                return;
+            }
+
+            if (item.image != null) {
+                item.startAnimation();
+                new LoadImage().execute(item.image);
+            } else {
+                item.bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.rss);
+                imageView.setImageBitmap(item.bitmap);
+                animator.start();
+            }
+
+        }
+
+        private class LoadImage extends AsyncTask<String, String, Bitmap> {
+            @Override
+            protected Bitmap doInBackground(String... args) {
+                try {
+                    item.bitmap = BitmapFactory.decodeStream((InputStream) new URL(args[0]).getContent());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (item.bitmap == null || item.bitmap.getWidth() < 10) {
+                        item.bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.rss);
+                    }
+                    return item.bitmap;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Bitmap bm) {
+                super.onPostExecute(bm);
+                imageView.setImageBitmap(item.bitmap);
+                item.stopAnimation();
+                animator.start();
+                //adapter.add(Entry.this);
+            }
+        }
     }
 
     public class FeedAdapterHolder extends RecyclerView.ViewHolder implements View.OnClickListener {

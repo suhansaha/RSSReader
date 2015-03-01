@@ -54,8 +54,6 @@ class Feed {
     public static Feed getFeed(Context context, String url, FeedAdapter adapter, View refresh) {
         if (isProcessing)
             return null;
-
-        adapter.removeAll();
         return new Feed(context, url, adapter, refresh);
     }
 
@@ -63,7 +61,6 @@ class Feed {
         if (isProcessing)
             return;
 
-        adapter.removeAll();
         getFeedData();
     }
 
@@ -82,11 +79,14 @@ class Feed {
 
             @Override
             public void onResponse(String response) {
+                adapter.removeAll();
                 processResponse(response);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                refresh.clearAnimation();
+                isProcessing = false;
                 Toast.makeText(context, "Could not fetch feed from: " + url, Toast.LENGTH_LONG).show();
             }
         });
@@ -106,8 +106,8 @@ class Feed {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // isProcessing = false;
-        // refresh.clearAnimation();
+        isProcessing = false;
+        refresh.clearAnimation();
 
     }
 
@@ -253,6 +253,7 @@ class Feed {
         public final String title;
         public final String link;
         public final String summary;
+        public String image;
         public Bitmap bitmap;
 
 
@@ -260,42 +261,17 @@ class Feed {
             this.title = title;
             this.summary = summary;
             this.link = link;
-            if (image != null) {
-                new LoadImage().execute(image);
-                Feed.nodeCount++;
-            } else {
-                bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.rss);
-
-                adapter.add(this);
-            }
+            this.image = image;
+            adapter.add(this);
         }
 
-        private class LoadImage extends AsyncTask<String, String, Bitmap> {
-            @Override
-            protected Bitmap doInBackground(String... args) {
-                try {
-                    bitmap = BitmapFactory.decodeStream((InputStream) new URL(args[0]).getContent());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (bitmap == null || bitmap.getWidth() < 10) {
-                        bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.rss);
-                    }
-                    Feed.nodeCount--;
-                    return bitmap;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(Bitmap bitmap) {
-                super.onPostExecute(bitmap);
-
-                if (nodeCount == 0) {
-                    isProcessing = false;
-                    refresh.clearAnimation();
-                }
-                adapter.add(Entry.this);
-            }
+        public void startAnimation() {
+            refresh.startAnimation(rotation);
         }
+
+        public void stopAnimation() {
+            refresh.clearAnimation();
+        }
+
     }
 }
