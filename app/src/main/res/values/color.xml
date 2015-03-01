@@ -4,4 +4,35 @@
     <color name="primaryColorTranslucent">#aa00BCD4</color>
     <color name="primaryColorDark">#0097A7</color>
     <color name="accentColor">#F50057</color>
+
+    <color name="red">#F44336</color>
+    <color name="yellow">#FFC107</color>
+    <color name="cyan">#00BCD4</color>
+    <color name="pink">#E91E63</color>
+    <color name="green">#4CAF50</color>
+    <color name="purple">#3F51B5</color>
+
+    <color name="darkred">#D32F2F</color>
+    <color name="darkyellow">#FFA000</color>
+    <color name="darkcyan">#0097A7</color>
+    <color name="darkgreen">#388E3C</color>
+    <color name="darkpink">#C2185B</color>
+    <color name="darkpurple">#303F9F</color>
+
+    <array name="titlecolor">
+        <item>@color/red</item>
+        <item>@color/yellow</item>
+        <item>@color/green</item>
+        <item>@color/pink</item>
+        <item>@color/purple</item>
+        <item>@color/cyan</item>
+    </array>
+    <array name="statusbarcolor">
+        <item>@color/darkred</item>
+        <item>@color/darkyellow</item>
+        <item>@color/darkgreen</item>
+        <item>@color/darkpink</item>
+        <item>@color/darkpurple</item>
+        <item>@color/darkcyan</item>
+    </array>
 </resources>

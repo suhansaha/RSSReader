@@ -60,11 +60,12 @@
         </LinearLayout>
     </ScrollView>
 
-    <android.support.v7.widget.Toolbar
+    <android.support.v7.widget.Toolbar xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/feedToolbar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="@android:color/transparent">
+        android:background="@android:color/transparent"
+        app:theme="@style/NewsReaderThemeToolbarDarkOverflow">
 
         <ImageButton
             android:id="@+id/toolbarBack"

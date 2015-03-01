@@ -1,14 +1,21 @@
 package in.suhan.rssreader;
 
+import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.RotateAnimation;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -21,6 +28,7 @@ import in.suhan.rssreader.Data.FeedSourceItem;
 public class MainActivity extends ActionBarActivity {
     public static final int ADD_ACTIVITY_REQUEST = 1327;
     List<FeedSourceItem> rssSourceList;
+    ImageView refresh;
     private FeedAdapter adapter;
     private Feed feed;
     private FeedDataSource rssSource;
@@ -33,7 +41,6 @@ public class MainActivity extends ActionBarActivity {
         List<Feed.Entry> list = new ArrayList<>();
         adapter = new FeedAdapter(this, list);
         adapter.createRSSList((ViewGroup) findViewById(R.id.sceneRoot));
-        fetchFeed(0);
 
     }
 
@@ -42,6 +49,20 @@ public class MainActivity extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        final MenuItem item = menu.findItem(R.id.action_refresh);
+
+        item.setActionView(R.layout.rotating_refresh);
+        refresh = (ImageView) item.getActionView().findViewById(R.id.refreshButton);
+
+        refresh.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                onOptionsItemSelected(item);
+            }
+        });
+        fetchFeed(0);
         return true;
     }
 
@@ -55,8 +76,8 @@ public class MainActivity extends ActionBarActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_refresh) {
             adapter.toggleAnimation(true);
-            adapter.removeAll();
-            feed.getFeedData();
+
+            feed.refresh();
             return true;
         }
         if (id == R.id.action_select) {
@@ -71,8 +92,6 @@ public class MainActivity extends ActionBarActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == ADD_ACTIVITY_REQUEST && resultCode == RESULT_OK) {
-            TextView txt = (TextView) findViewById(R.id.url);
-
             fetchFeed(data.getIntExtra("index", -1));
         }
     }
@@ -80,16 +99,14 @@ public class MainActivity extends ActionBarActivity {
     void fetchFeed(int index) {
         rssSource = new FeedDataSource(this);
         rssSourceList = rssSource.findAll();
-        TextView txt = (TextView) findViewById(R.id.url);
+        //TextView txt = (TextView) findViewById(R.id.url);
 
         if (!rssSourceList.isEmpty() && index >= 0 && index < rssSourceList.size()) {
-            adapter.removeAll();
-            txt.setText(rssSourceList.get(index).getFeedTitle());
-            feed = new Feed(this, rssSourceList.get(index).getFeedURL(), adapter);
+            getSupportActionBar().setTitle(rssSourceList.get(index).getFeedTitle());
+            feed = Feed.getFeed(this, rssSourceList.get(index).getFeedURL(), adapter, refresh);
         } else {
-            adapter.removeAll();
-            txt.setText("Default: Anandabazar");
-            feed = new Feed(this, "http://www.suhan.in/rss.xml", adapter);
+            getSupportActionBar().setTitle("Default: Anandabazar");
+            feed = Feed.getFeed(this, "http://www.suhan.in/rss.xml", adapter, refresh);
         }
 
     }

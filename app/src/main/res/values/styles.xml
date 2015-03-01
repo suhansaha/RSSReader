@@ -13,6 +13,7 @@
 
     <style name="NewsReaderThemeToolbarDarkOverflow" parent="Theme.AppCompat.NoActionBar">
         <item name="android:textColorPrimary">#ffffff</item>
+        <item name="android:textColorLink">#ffffff</item>
     </style>
 
 </resources>

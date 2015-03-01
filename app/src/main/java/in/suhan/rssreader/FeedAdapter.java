@@ -4,6 +4,7 @@ package in.suhan.rssreader;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -61,6 +62,9 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     };
     private int prevScrollY = 0;
     private int stability = 0;
+    private int[] titleColors;
+    private int[] statusBarColors;
+    private int titleColor;
     private ViewTreeObserver.OnScrollChangedListener feedScrollListener = new ViewTreeObserver.OnScrollChangedListener() {
         @Override
         public void onScrollChanged() {
@@ -84,7 +88,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
             if (scrolly < 20) {
                 feedImageContainer.setBackgroundColor(Color.argb(1, 0, 0, 0));
             } else {
-                feedImageContainer.setBackgroundColor(context.getResources().getColor(R.color.primaryColor));
+                feedImageContainer.setBackgroundColor(titleColor);
             }
 
             float break1 = (float) (height * 0.4);
@@ -104,7 +108,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
             } else if (scrolly < break2) {
                 stability = 1;
                 feedToolbarTitle.setText(feedTitle.getText());
-                feedToolbar.setBackgroundColor(context.getResources().getColor(R.color.primaryColor));
+                feedToolbar.setBackgroundColor(titleColor);
                 feedTitle.setVisibility(View.GONE);
                 feedImageContainer.setVisibility(View.GONE);
                 feedToolbar.setVisibility(View.VISIBLE);
@@ -121,7 +125,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     private ViewGroup feedListLayout;
     private RecyclerView feedListRView;
     private Toolbar feedListToolbar;
-    private View urlBar;
+    //private View urlBar;
     private View feedContentLayout;
     private View feedContainer;
     private ImageView feedImage;
@@ -150,11 +154,20 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         //Log.d("MaterialAnimationTrace", "Resetted scrolldelay old: " + temp + ", new: " + scrollDelay);
     }
 
+    int getTitleColor(int resId) {
+        return context.getResources().getColor(titleColors[resId % titleColors.length]);
+    }
+
+    int getStatusBarColor(int resId) {
+        return context.getResources().getColor(statusBarColors[resId % statusBarColors.length]);
+    }
+
     @Override
     public void onBindViewHolder(FeedAdapterHolder holder, int position) {
         Feed.Entry item = dataList.get(position);
         holder.textView.setText(Html.fromHtml(item.title));
         holder.imageView.setImageBitmap(item.bitmap);
+        holder.textView.setBackgroundColor(titleColors[position % titleColors.length]);
         holder.view.setTag(position);
 
         if (willAnimate) {
@@ -193,6 +206,9 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     }
 
     private void doTransition(View v) {
+        TextView txtView = (TextView) v.findViewById(R.id.feedBody);
+        ColorDrawable cd = (ColorDrawable) txtView.getBackground();
+        titleColor = cd.getColor();
         int i = (int) v.getTag();
 
         //Reset Widgets
@@ -202,6 +218,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         feedToolbarTitle.setText("");
 
         feedImageContainer.setVisibility(View.VISIBLE);
+        feedImageContainer.setBackgroundColor(titleColor);
         ViewGroup.LayoutParams layoutParams = feedImageContainer.getLayoutParams();
         layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
         layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -211,6 +228,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         Feed.Entry item = dataList.get(i);
         feedImage.setImageBitmap(item.bitmap);
         feedTitle.setText(Html.fromHtml("<a href=\"" + item.link + "\" >" + item.title + "</a>"));
+        feedTitle.setBackgroundColor(titleColor);
         //Log.d("SuhanTrace",Html.fromHtml(item.summary).toString());
         //Log.d("SuhanTrace",item.summary.replaceAll("img.*?src",""));
         feedBody.setText(Html.fromHtml(item.summary));
@@ -302,10 +320,14 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
     }
 
     public void createRSSList(ViewGroup sceneRoot) {
+        titleColors = new int[6];
+        statusBarColors = new int[6];
+        titleColors = context.getResources().getIntArray(R.array.titlecolor);
+        statusBarColors = context.getResources().getIntArray(R.array.statusbarcolor);
 
         feedListLayout = (ViewGroup) inflater.inflate(R.layout.feed_list_layout, mViewGroup, false);
         feedListRView = (RecyclerView) feedListLayout.findViewById(R.id.FeedList);
-        urlBar = feedListLayout.findViewById(R.id.url);
+        //urlBar = feedListLayout.findViewById(R.id.url);
         feedListToolbar = (Toolbar) feedListLayout.findViewById(R.id.toolbar);
 
         feedListRView.setOnScrollListener(scrollListener);
@@ -345,13 +367,13 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedAdapterHol
         toolbar.setTranslationY(-300);
         view1.setTranslationY(-300);
         view2.setTranslationY(-300);
-        urlBar.setTranslationY(-300);
-        urlBar.setAlpha(0);
+        //urlBar.setTranslationY(-300);
+        //urlBar.setAlpha(0);
 
         toolbar.animate().setDuration(1000).translationY(0).alpha(1);
         view1.animate().setStartDelay(900).setDuration(1000).translationY(0);
         view2.animate().setStartDelay(900).setDuration(1000).translationY(0);
-        urlBar.animate().setStartDelay(1000).setDuration(1000).translationY(0).alpha(1);
+        //urlBar.animate().setStartDelay(1000).setDuration(1000).translationY(0).alpha(1);
     }
 
     public class FeedAdapterHolder extends RecyclerView.ViewHolder implements View.OnClickListener {

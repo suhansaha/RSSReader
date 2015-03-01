@@ -6,6 +6,13 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Xml;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.RotateAnimation;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -27,18 +34,48 @@ import java.util.regex.Pattern;
 
 class Feed {
     private static final String ns = null;
+    private static boolean isProcessing = false;
+    private static int nodeCount;
     private final FeedAdapter adapter;
     private final String url;
     private final Context context;
+    Animation rotation;
+    private View refresh;
 
-    public Feed(Context context, String url, FeedAdapter adapter) {
+
+    private Feed(Context context, String url, FeedAdapter adapter, View refresh) {
         this.url = url;
         this.context = context;
         this.adapter = adapter;
+        this.refresh = refresh;
         getFeedData();
     }
 
-    public void getFeedData() {
+    public static Feed getFeed(Context context, String url, FeedAdapter adapter, View refresh) {
+        if (isProcessing)
+            return null;
+
+        adapter.removeAll();
+        return new Feed(context, url, adapter, refresh);
+    }
+
+    public void refresh() {
+        if (isProcessing)
+            return;
+
+        adapter.removeAll();
+        getFeedData();
+    }
+
+    private void getFeedData() {
+        if (isProcessing)
+            return;
+        /* Do Animation */
+        rotation = AnimationUtils.loadAnimation(context, R.anim.rotate);
+        refresh.startAnimation(rotation);
+
+        isProcessing = true;
+
         RequestQueue queue = Volley.newRequestQueue(context);
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -69,6 +106,8 @@ class Feed {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        // isProcessing = false;
+        // refresh.clearAnimation();
 
     }
 
@@ -210,7 +249,6 @@ class Feed {
         }
     }
 
-
     public class Entry {
         public final String title;
         public final String link;
@@ -224,6 +262,7 @@ class Feed {
             this.link = link;
             if (image != null) {
                 new LoadImage().execute(image);
+                Feed.nodeCount++;
             } else {
                 bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.rss);
 
@@ -242,6 +281,7 @@ class Feed {
                     if (bitmap == null || bitmap.getWidth() < 10) {
                         bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.rss);
                     }
+                    Feed.nodeCount--;
                     return bitmap;
                 }
             }
@@ -249,6 +289,11 @@ class Feed {
             @Override
             protected void onPostExecute(Bitmap bitmap) {
                 super.onPostExecute(bitmap);
+
+                if (nodeCount == 0) {
+                    isProcessing = false;
+                    refresh.clearAnimation();
+                }
                 adapter.add(Entry.this);
             }
         }
